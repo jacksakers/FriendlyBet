@@ -110,7 +110,7 @@ ul.topnav li.right {
 }
 .box{
   background-color: #a89135;
-  height: 400px;
+  height: 500px;
   width: 100vw;
   overflow-y: scroll; 
 }
@@ -156,9 +156,11 @@ ul.topnav li.right {
 }
 .item {
   background-color: beige;
-  height: 100px;
+  height: 130px;
   padding: 5px 5px;
   margin: 10px;
+  width: 94vw;
+  overflow-y: scroll; 
 }
 .sport-selector {
   list-style-type: none;
@@ -169,6 +171,40 @@ ul.topnav li.right {
   position: -webkit-sticky; /* Safari */
   position: sticky;
   top: 0;
+}
+.bet-name {
+  font-size: 21px;
+  margin: 1px;
+  border-bottom: black 2px solid;
+}
+.bet-option {
+  font-size: 30px;
+  margin: 1px;
+  border-bottom: black 1px solid;
+}
+.bet-option:hover {
+  background-color: rgb(255, 255, 255);
+}
+.enter-bet {
+  margin-left: 10vw;
+  height: 18px;
+  width: 100px;
+}
+.wager-button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border-radius: 12px;
+}
+.title {
+  text-align: center;
+  color: #bfbebe;
 }
 
 
