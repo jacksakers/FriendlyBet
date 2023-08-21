@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendly Bets</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Friendly Bets</h1>
+    <div id="bet-list"></div>
+    <div id="create-bet">
+        <h2>Create a Bet</h2>
+        <input type="text" id="bet-description" placeholder="Bet description">
+        <input type="text" id="bet-amount" placeholder="Bet amount">
+        <button id="create-bet-btn">Create Bet</button>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
