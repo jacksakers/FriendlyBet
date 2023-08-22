@@ -232,6 +232,8 @@ ul.topnav li.right {
 }
 .time-limit-options {
   font-size: 20px;
+  display: block;
+  margin-bottom: 5px;
 }
 .profile-item {
   background-color: beige;
@@ -241,6 +243,44 @@ ul.topnav li.right {
   width: 94vw;
   overflow-y: scroll; 
   border-radius: 5px;
+}
+
+
+
+/* Style for the "Sign In" button */
+#sign-btn {
+  background-color: #333;
+  color: white;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#sign-btn:hover {
+  background-color: #222;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 70%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+input[type="submit"] {
+  background-color: #333;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #222;
 }
 
 /* #plus {

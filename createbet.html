@@ -100,22 +100,28 @@
                 id="title">
             <br>
             <input class="enter-bet-option" placeholder="Enter Bet Option 1"
-                name="bet-option">
+                id="bet-option1">
             <br>
             <input class="enter-bet-option" placeholder="Enter Bet Option 2"
-                name="bet-option">
+                id="bet-option2">
             <button>Add New Option</button>
             <br>
             <label for="time-limit" class="time-limit-options">Time Limit?</label>
-            <input name="time-limit" type="checkbox">
+            <input name="time-limit" id="time-limit" type="checkbox">
             <br>
-            <input name="date" type="date"> <input name="time" type="time">
+            <input id="date" type="date"> <input id="time" type="time">
             <br>
-            <input type="submit" value="Create Bet">
+            <input type="submit" value="Create Bet" id="create-bet-btn">
           </form>
         </div>
       </div>
-    <!-- <button onclick="testPrint()">Test Print</button> -->
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+      <script src="firebase-config.js"></script>
+      <script src="create-bet.js"></script>
   </body>
 
 </html>
