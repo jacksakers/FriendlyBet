@@ -161,6 +161,7 @@ ul.topnav li.right {
   margin: 10px;
   width: 94vw;
   overflow-y: scroll; 
+  border-radius: 5px;
 }
 .sport-selector {
   list-style-type: none;
@@ -204,9 +205,43 @@ ul.topnav li.right {
 }
 .title {
   text-align: center;
-  color: #bfbebe;
+  color: #ffffff;
 }
-
+.enter-title {
+  height: 29px;
+  width: 165px;
+  font-size: 21px;
+  margin: 3px;
+  border-bottom: black 2px solid;
+}
+.enter-bet-option {
+  height: 29px;
+  width: 271px;
+  font-size: 30px;
+  margin: 3px;
+  border-bottom: black 1px solid;
+}
+.create-item {
+  background-color: beige;
+  height: 250px;
+  padding: 5px 5px;
+  margin: 10px;
+  width: 94vw;
+  overflow-y: scroll; 
+  border-radius: 5px;
+}
+.time-limit-options {
+  font-size: 20px;
+}
+.profile-item {
+  background-color: beige;
+  height: 200px;
+  padding: 5px 5px;
+  margin: 10px;
+  width: 94vw;
+  overflow-y: scroll; 
+  border-radius: 5px;
+}
 
 /* #plus {
   font-size: 26px;

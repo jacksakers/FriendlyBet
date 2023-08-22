@@ -18,7 +18,7 @@
         100 c
       </li>
       <li>
-        <a class="active" href="#home">
+        <a href="./index.html">
           Open Bets
         </a>
       </li>
@@ -28,7 +28,7 @@
         </a>
       </li>
       <li>
-        <a href="./createbet.html">
+        <a class="active" href="./createbet.html">
           Create Bet
         </a>
       </li>
@@ -61,12 +61,12 @@
     <div class="row">
       <div class="column">
         <div class="tab" id="selected-tab">
-          Sports
+          New Bet
         </div>
       </div>
       <div class="column">
         <div class="tab">
-          Miscellaneous
+          Created Bets
         </div>
       </div>
       <div class="box">
@@ -94,37 +94,27 @@
         <!-- <div class="column" id="plus">
           +
         </div> -->
-        <div class="item">
-          <div class="bet-name">
-            8/21 NFL Game
-          </div>
-          <div class="bet-option">
-            Ravens | 1.5
-            <input class="enter-bet">
-            c
-            <button class="wager-button">
-              Wager
-            </button>
-          </div>
-          <div class="bet-option">
-            Steelers | 2
-            <input class="enter-bet">
-            c
-            <button class="wager-button">
-              Wager
-            </button>
-          </div>
-          </div>
-          <div class="item">
-          
-          </div>
-          <div class="item">
-          
-          </div>
-          <div class="item">
-          
-          </div>
+        <div class="create-item">
+          <form id="new-bet-form" action="#" onsubmit="submitNewBet();return false;">
+            <input class="enter-title" placeholder="Enter Title"
+                id="title">
+            <br>
+            <input class="enter-bet-option" placeholder="Enter Bet Option 1"
+                name="bet-option">
+            <br>
+            <input class="enter-bet-option" placeholder="Enter Bet Option 2"
+                name="bet-option">
+            <button>Add New Option</button>
+            <br>
+            <label for="time-limit" class="time-limit-options">Time Limit?</label>
+            <input name="time-limit" type="checkbox">
+            <br>
+            <input name="date" type="date"> <input name="time" type="time">
+            <br>
+            <input type="submit" value="Create Bet">
+          </form>
         </div>
+      </div>
     <!-- <button onclick="testPrint()">Test Print</button> -->
   </body>
 
