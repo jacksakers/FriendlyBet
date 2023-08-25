@@ -23,6 +23,7 @@ async function userIsLoggedIn() {
   // await db.collection("users").doc(currentUser.uid).set({
   //   username: currentUser.email.split("@")[0]
   // });
+  getGroups();
 }
 
 function signOut() {
@@ -48,13 +49,52 @@ async function createGroup() {
   document.getElementById("group-input").value = "";
 }
 
-db.collection('groups').onSnapshot(snapshot => {
-  groups.innerHTML = '';
-  snapshot.forEach(doc => {
-      const data = doc.data();
-      const group = document.createElement('div');
-      group.classList.add('group');
-      group.innerHTML = `${data.groupname}`;
-      groups.appendChild(group);
+// db.collection('groups').onSnapshot(snapshot => {
+//   groups.innerHTML = '';
+//   snapshot.forEach(doc => {
+//       const data = doc.data();
+//       const group = document.createElement('div');
+//       group.classList.add('group');
+//       group.innerHTML = `${data.groupname}`;
+//       groups.appendChild(group);
+//   });
+// });
+
+
+async function getGroups() {
+  var groupArray = [];
+  var docRef = db.collection("users").doc(currentUser.uid);
+  await docRef.get().then((doc) => {
+    if (doc.exists) {
+        // console.log("Document data:", doc.data());
+        groupArray = doc.data().groups;
+        // document.getElementById("current-group").innerHTML = doc.data().currentgroup;
+    } else {
+        // doc.data() will be undefined in this case
+        console.log("No such document!");
+    }
+  }).catch((error) => {
+      console.log("Error getting document:", error);
   });
-});
+
+  groupArray.forEach(async (groupID) => {
+    var docRef = db.collection('groups').doc(groupID);
+    var groups = document.getElementById("groups");
+    groups.innerHTML = '';
+    await docRef.get().then((doc) => {
+      if (doc.exists) {
+          // console.log("Document data:", doc.data());
+          const data = doc.data();
+          const groupElement = document.createElement('div');
+          groupElement.classList.add("group");
+          groupElement.innerHTML = `${data.groupname}`;
+          groups.appendChild(groupElement);
+      } else {
+          // doc.data() will be undefined in this case
+          console.log("No such document!");
+      }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
+  })
+}
