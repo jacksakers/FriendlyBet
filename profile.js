@@ -1,59 +1,60 @@
-
 // Get a reference to the Firebase Auth service
 const auth = firebase.auth();
+const db = firebase.firestore();
 
-var user = firebase.auth().currentUser;
+var currentUser;
+const groups = document.getElementById("groups");
 
-if (user) {
-  // User is signed in.
-  console.log(user);
-} else {
-  // No user is signed in.
-  console.log("not signed in");
+//Handle Account Status
+firebase.auth().onAuthStateChanged(user => {
+  if(user) {
+    currentUser = user;
+    // console.log(currentUser);
+    // window.location = './profile.html';
+    userIsLoggedIn();
+  } else {
+    console.log("not signed in");
+    window.location = "./login.html"
+  }
+});
+
+async function userIsLoggedIn() {
+  document.getElementById("selected-tab").innerHTML = "Hello, " + currentUser.email.split("@")[0];
+  // await db.collection("users").doc(currentUser.uid).set({
+  //   username: currentUser.email.split("@")[0]
+  // });
 }
 
-// Function to register a new user with email and password
-function registerUser() {
-  var email = document.getElementById("email").value;
-  var password = document.getElementById("password").value;
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      // User registration successful
-      const user = userCredential.user;
-      console.log('User registered:', user);
-    })
-    .catch((error) => {
-      console.error('Error during user registration:', error);
-    });
+function signOut() {
+  auth.signOut().then(() => {
+    // Sign-out successful.
+    window.location = "./login.html";
+  }).catch((error) => {
+    // An error happened.
+  });
 }
 
-// Function to authenticate an existing user with email and password
-function loginUser() {
-  var email = document.getElementById("email").value;
-  var password = document.getElementById("password").value;
-  auth.signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      // User authentication successful
-      const user = userCredential.user;
-      console.log('User authenticated:', user);
-    })
-    .catch((error) => {
-      console.error('Error during user authentication:', error);
-    });
+async function createGroup() {
+  var groupName = document.getElementById("group-input").value;
+  const docRef = db.collection("groups").doc();
+  const docId = docRef.id;
+  await docRef.set({
+    groupname: groupName
+  });
+  var usersRef = db.collection("users").doc(currentUser.uid);
+  await usersRef.update({
+      groups: firebase.firestore.FieldValue.arrayUnion(docId)
+  });
+  document.getElementById("group-input").value = "";
 }
 
-function switchToSignIn() {
-  document.getElementById("switch-label").innerHTML = "Or Sign Up:";
-  document.getElementById("selected-tab").innerHTML = "Sign In";
-  document.getElementById("sign-btn").innerHTML = "Sign Up";
-  document.getElementById("sign-btn").setAttribute('onclick', "switchToSignUp()");
-  document.getElementById("login-form").setAttribute('onsubmit', "loginUser();return false;");
-}
-
-function switchToSignUp() {
-  document.getElementById("switch-label").innerHTML = "Or Sign In:";
-  document.getElementById("selected-tab").innerHTML = "Sign Up";
-  document.getElementById("sign-btn").innerHTML = "Sign In";
-  document.getElementById("sign-btn").setAttribute('onclick', "switchToSignIn()");
-  document.getElementById("login-form").setAttribute('onsubmit', "registerUser();return false;");
-}
+db.collection('groups').onSnapshot(snapshot => {
+  groups.innerHTML = '';
+  snapshot.forEach(doc => {
+      const data = doc.data();
+      const group = document.createElement('div');
+      group.classList.add('group');
+      group.innerHTML = `${data.groupname}`;
+      groups.appendChild(group);
+  });
+});

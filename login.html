@@ -42,27 +42,40 @@
     <div class="row">
       <div>
         <div class="tab" id="selected-tab">
-          Hello
-        </div>
-        <div id="sign-out-btn-wrapper">
-          <button id="sign-out-btn" onclick="signOut()">Sign Out</button>
+          Sign Up
         </div>
       </div>
       <div class="box" id="box">
         <div class="login-area">
           <br>
-          <div class="profile-item">
-            <div class="bet-name">
-            Groups
-            </div>
-            <div class="groups" id="groups">
-              <div class="group">
-                Loading...
-              </div>
-            </div>
-            <input id="group-input" placeholder="Group Name">
-            <button id="sign-btn" onclick="createGroup()">Create Group</button>
+          <form id="login-form" action="#" onsubmit="registerUser();return false;">
+            <label for="email" class="time-limit-options">
+              Enter Email:
+            </label>
+            <input name="email" id="email" type="text" placeholder="email@example.com">
+            <br>
+            <label for="password" class="time-limit-options">
+              Enter Password:
+            </label>
+            <input name="password" id="password" type="password" placeholder="password">
+            <br>
+            <input type="submit" value="Submit" id="sign-up-btn">
+          </form>
+          <br>
+          <div id="switch-label">
+            Or Sign In:
           </div>
+          <button onclick="switchToSignIn()" id="sign-btn">
+            Sign In
+          </button>
+          <!-- <div class="profile-item">
+          <div class="bet-name">
+          Groups
+          </div>
+          <div class="groups">
+          Gadsden Group
+          </div>
+          </div> -->
         </div>
       </div>
       <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js">
@@ -77,7 +90,7 @@
       </script>
       <script src="firebase-config.js">
       </script>
-      <script src="profile.js">
+      <script src="login.js">
       </script>
   </body>
 
