@@ -2,6 +2,7 @@ const db = firebase.firestore();
 
 var currentUser = null;
 var currentGroup = null;
+var numOfOptions = 2;
 
 //Handle Account Status
 firebase.auth().onAuthStateChanged(async (_user) => {
@@ -38,33 +39,62 @@ async function submitNewBet() {
     var docRef = null;
 
     const title = document.getElementById('title').value;
-    const option1 = document.getElementById('bet-option1').value;
-    const option2 = document.getElementById('bet-option2').value;
 
-    const optionArray = [option1, option2];
+    // get options
+    var optionArray = [];
+    for (var i = 1; i < numOfOptions+1; ++i) {
+        optionArray.push(document.getElementById(`bet-option${i}`).value);
+    }
+
+    // time limit?
+    const timeLimit = document.getElementById('time-limit').checked;
+    var date = document.getElementById('date').value;
+    var time = document.getElementById('time').value;
 
     // add group to bet
-    
     var docId = null;
-    if (title && option1 && option2) {
+    if (title && (optionArray[0] != "" && optionArray[1] != "") &&
+            (!timeLimit || (date != "" && time != ""))) {
         docRef = db.collection('bets').doc();
         docId = docRef.id;
         await docRef.set({
             title: title,
             options: optionArray,
-            groupID: currentGroup
+            groupID: currentGroup,
+            timelimit: timeLimit,
+            date: date,
+            time: time
         });
 
         document.getElementById('title').value = '';
         document.getElementById('bet-option1').value = '';
         document.getElementById('bet-option2').value = '';
-    }
+        document.getElementById('bet-options').innerHTML = `<div id="bet-options">
+            <input class="enter-bet-option" placeholder="Enter Bet Option 1"
+            id="bet-option1">
+            <br>
+            <input class="enter-bet-option" placeholder="Enter Bet Option 2"
+                id="bet-option2">
+            </div>`;
 
-    // add betID to group
-    docRef = db.collection("groups").doc(currentGroup);
-    await docRef.update({
-        bets: firebase.firestore.FieldValue.arrayUnion(docId)
-    });
+        // add betID to group
+        docRef = db.collection("groups").doc(currentGroup);
+        var betsArray;
+        await docRef.get().then((doc) => {
+            if (doc.exists) {
+                betsArray = doc.data().bets;
+            } else {
+                console.log("No such document!");
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+        });
+        betsArray.unshift(docId);
+        await docRef.update({
+            bets: betsArray
+        });
+    }
+    
 }
 
 
@@ -105,4 +135,14 @@ async function getGroups() {
         console.log("Error getting document:", error);
     });
   })
+}
+
+function addNewOption() {
+    numOfOptions++;
+    var betOptions = document.getElementById("bet-options");
+    var newOption = document.createElement('input');
+    newOption.classList.add("enter-bet-option");
+    newOption.setAttribute('placeholder', `Enter Bet Option ${numOfOptions}`);
+    newOption.setAttribute('id', `bet-option${numOfOptions}`);
+    betOptions.appendChild(newOption);
 }

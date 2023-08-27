@@ -64,7 +64,6 @@
         </div>
       </div>
       <div class="box">
-        <!-- <div class="column"> -->
           <div class="specific-sport">
             Football
             <div class="sport-dropdown">
@@ -84,29 +83,27 @@
               </div>
             </div>
           </div>
-        <!-- </div> -->
-        <!-- <div class="column" id="plus">
-          +
-        </div> -->
         <div class="create-item">
-          <form id="new-bet-form" action="#" onsubmit="submitNewBet();return false;">
+          <div id="new-bet-form" >
             <input class="enter-title" placeholder="Enter Title"
                 id="title">
-            <br>
-            <input class="enter-bet-option" placeholder="Enter Bet Option 1"
+            <div id="bet-options">
+                <input class="enter-bet-option" placeholder="Enter Bet Option 1"
                 id="bet-option1">
+                <br>
+                <input class="enter-bet-option" placeholder="Enter Bet Option 2"
+                    id="bet-option2">
+            </div>
             <br>
-            <input class="enter-bet-option" placeholder="Enter Bet Option 2"
-                id="bet-option2">
-            <button>Add New Option</button>
+            <button onclick="addNewOption()">Add New Option</button>
             <br>
             <label for="time-limit" class="time-limit-options">Time Limit?</label>
             <input name="time-limit" id="time-limit" type="checkbox">
             <br>
             <input id="date" type="date"> <input id="time" type="time">
             <br>
-            <input type="submit" value="Create Bet" id="create-bet-btn">
-          </form>
+            <input type="submit" value="Create Bet" id="create-bet-btn" onclick="submitNewBet();return false;">
+        </div>
         </div>
       </div>
       <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>

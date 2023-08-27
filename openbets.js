@@ -42,33 +42,57 @@ async function getGroupBets() {
   }).catch((error) => {
       console.log("Error getting document:", error);
   });
-
-  betsArray.forEach(async (betID) => {
+  var betList = document.getElementById("bet-list");
+  betList.innerHTML = '';
+  var betElementsArray = [];
+  await betsArray.forEach(async (betID) => {
     var docRef = db.collection('bets').doc(betID);
-    var betList = document.getElementById("bet-list");
-    betList.innerHTML = '';
     await docRef.get().then((doc) => {
       if (doc.exists) {
-          // console.log("Document data:", doc.data());
           const data = doc.data();
-            const betElement = document.createElement('div');
-            betElement.classList.add('item');
-            const betOptions = data.options;
-            var betOptionsDivs = ``;
-            betOptions.forEach((option) => {
-                betOptionsDivs += `<div class="bet-option">
-                    ${option} | 1.5
-                    <input class="enter-bet">
-                    c
-                    <button class="wager-button">
-                    Wager
-                    </button>
-                    </div>`;
-            });
-            // betElement.innerHTML = `<strong>${data.description}</strong> - $${data.amount}`;
+          const timeLimit = data.timelimit;
+          const betElement = document.createElement('div');
+          betElement.classList.add('item');
+          const betOptions = data.options;
+          var betOptionsDivs = ``;
+          betOptions.forEach((option) => {
+              betOptionsDivs += `<div class="bet-option">
+                  ${option} | 1.5
+                  <input class="enter-bet">
+                  c
+                  <button class="wager-button">
+                  Wager
+                  </button>
+                  </div>`;
+          });
+          if (timeLimit) {
+
+            var q = new Date();
+
+            var dateSplit = data.date.split("-");
+            var timeSplit = data.time.split(":");
+            var limit=new Date(dateSplit[0],dateSplit[1]-1,dateSplit[2],
+                                timeSplit[0], timeSplit[1]);
+
+            if (q>limit) {
+                console.log("expired");
+            } else {
+              if (q.getTime() < limit.getTime()) {
+                console.log("not expired")
+              }
+            }
+
+            var hour = timeSplit[0];
+            var time = data.time;
+            if (hour > 12) time = (hour - 12) + ":" + timeSplit[1];
+
             betElement.innerHTML = `<div class="bet-name">
-                ${data.title}</div>` + betOptionsDivs;
-            betList.appendChild(betElement);
+              ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
+          } else {
+            betElement.innerHTML = `<div class="bet-name">
+              ${data.title}</div>` + betOptionsDivs;
+          }
+          betList.appendChild(betElement);
       } else {
           // doc.data() will be undefined in this case
           console.log("No such bet document!");
@@ -77,30 +101,9 @@ async function getGroupBets() {
         console.log("Error getting document:", error);
     });
   })
+
     // Real-time updates
     // db.collection('bets').onSnapshot(snapshot => {
-    //     betList.innerHTML = '';
-    //     snapshot.forEach(doc => {
-    //         const data = doc.data();
-    //         const betElement = document.createElement('div');
-    //         betElement.classList.add('item');
-    //         const betOptions = data.options;
-    //         var betOptionsDivs = ``;
-    //         betOptions.forEach((option) => {
-    //             betOptionsDivs += `<div class="bet-option">
-    //                 ${option} | 1.5
-    //                 <input class="enter-bet">
-    //                 c
-    //                 <button class="wager-button">
-    //                 Wager
-    //                 </button>
-    //                 </div>`;
-    //         });
-    //         // betElement.innerHTML = `<strong>${data.description}</strong> - $${data.amount}`;
-    //         betElement.innerHTML = `<div class="bet-name">
-    //             ${data.title}</div>` + betOptionsDivs;
-    //         betList.appendChild(betElement);
-    //     });
     // });
 }
 
