@@ -60,7 +60,7 @@ async function submitNewBet() {
     // get options
     var optionArray = [];
     for (var i = 1; i < numOfOptions+1; ++i) {
-        optionArray.push(document.getElementById(`bet-option${i}`).value);
+        optionArray.push(document.getElementById(`bet-option${i}`).value + " | 0 | 0");
     }
 
     // time limit?
@@ -202,7 +202,7 @@ async function getCreatedBets() {
             var betOptionsDivs = ``;
             betOptions.forEach((option) => {
                 betOptionsDivs += `<div class="bet-option">
-                    ${option} | 1.5
+                    ${option}
                     <button class="wager-button">
                     Winner
                     </button>

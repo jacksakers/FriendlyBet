@@ -65,7 +65,7 @@ async function getGroupBets(family) {
   var betElementsArray = [];
   await betsArray.forEach(async (betID) => {
     var docRef = db.collection('bets').doc(betID);
-    await docRef.get().then((doc) => {
+    await docRef.onSnapshot((doc) => {
       if (doc.exists) {
           const data = doc.data();
           const timeLimit = data.timelimit;
@@ -73,12 +73,13 @@ async function getGroupBets(family) {
           const betFamily = data.family;
           if (betFamily != currentFamily) return;
           betElement.classList.add('item');
+          betElement.id = doc.id;
           const betOptions = data.options;
           var betOptionsDivs = ``;
           var index = 1;
           betOptions.forEach((option) => {
               betOptionsDivs += `<div class="bet-option">
-                  ${option} | 1.5
+                  <span id="option-${betID}-${index}"> ${option} </span>
                   <input class="enter-bet" id="${betID}-${index}">
                   c
                   <button class="wager-button" onclick="wagerOnOption('${betID}',${index})">
@@ -115,13 +116,15 @@ async function getGroupBets(family) {
             betElement.innerHTML = `<div class="bet-name">
               ${data.title}</div>` + betOptionsDivs;
           }
-          betList.appendChild(betElement);
+          try {
+            document.getElementById(doc.id).innerHTML = betElement.innerHTML;
+          } catch(err) {
+            betList.appendChild(betElement);
+          }
       } else {
           // doc.data() will be undefined in this case
           console.log("No such bet document!");
       }
-    }).catch((error) => {
-        console.log("Error getting document:", error);
     });
   })
 
@@ -137,23 +140,75 @@ async function wagerOnOption(betID, optionNum) {
   // credit check
   var availableCredits = await getCredits();
   if (wagerAmount > availableCredits) return false;
+  availableCredits = availableCredits - wagerAmount;
   // update pool
   var currentPool = 0;
+  var currentOptions = [];
+  var optionsWagerArray = [];
   await betRef.get().then((doc) => {
     if (doc.exists) {
         currentPool = doc.data().pool;
+        currentOptions = doc.data().options;
+        optionsWagerArray = doc.data().optionswagerarray;
     } else {
         console.log("No such document!");
     }
   }).catch((error) => {
       console.log("Error getting document:", error);
   });
-  console.log(currentPool);
-  console.log(wagerAmount);
   var newPool = (currentPool + wagerAmount);
-  await betRef.set({pool: newPool},
+  // update odds
+  var index = 0;
+  currentOptions.forEach((option) => {
+    var optionTitle = option.split(" | ")[0];
+    var optionAmount = parseInt(option.split(" | ")[2]);
+    if ((index + 1) == optionNum) {
+      optionAmount = optionAmount + wagerAmount;
+
+      var optionsWASplit = optionsWagerArray[index].split(" -:- ");
+      var i = 0;
+      var set = false;
+      var newPair = "";
+      optionsWASplit.forEach((pair) => {
+        var uid = pair.split(" | ")[0];
+        var amount = parseFloat(pair.split(" | ")[1]);
+        if (uid == currentUser.uid) {
+          amount += wagerAmount;
+          wagerAmount = amount;
+          newPair = currentUser.uid + " | " + amount;
+          optionsWASplit[i] = newPair;
+          set = true;
+        }
+        i++;
+      });
+      if (!set) {
+        optionsWASplit.push(currentUser.uid + " | " + wagerAmount);
+      }
+      optionsWagerArray[index] = ``;
+      i = 0;
+      optionsWASplit.forEach((pair) => {
+        if (pair != "") optionsWagerArray[index] += " -:- " + pair;
+        i++;
+      });
+    }
+    var newOdds = (newPool / optionAmount).toFixed(2);
+    currentOptions[index] = optionTitle + " | " + newOdds + " | " + optionAmount;
+    document.getElementById(`option-${betID}-${index + 1}`).innerHTML = currentOptions[index];
+    index++;
+  });
+
+  // write data
+  await betRef.set({options: currentOptions, 
+                    pool: newPool, 
+                    optionswagerarray: optionsWagerArray},
     { merge: true });
+  var userRef = db.collection("users").doc(currentUser.uid);
+  await userRef.set({wagered: firebase.firestore.FieldValue.arrayUnion(betID),
+                    credits: availableCredits},
+    { merge: true });
+
   document.getElementById(betID+"-"+optionNum).value = "";
+  document.getElementById("credits").innerHTML = availableCredits + " c";
 }
 
 

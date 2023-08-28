@@ -13,7 +13,8 @@ firebase.auth().onAuthStateChanged(async (_user) => {
     // user = _user;
     if (action == "Signing Up") {
       await db.collection("users").doc(_user.uid).set({
-        username: _user.email.split("@")[0]
+        username: _user.email.split("@")[0],
+        credits: 1000
       });
     }
     window.location = './profile.html';
