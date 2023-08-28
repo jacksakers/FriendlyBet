@@ -59,8 +59,10 @@ async function submitNewBet() {
 
     // get options
     var optionArray = [];
+    var optionsWagerArray = [];
     for (var i = 1; i < numOfOptions+1; ++i) {
         optionArray.push(document.getElementById(`bet-option${i}`).value + " | 0 | 0");
+        optionsWagerArray.push(" -:- ");
     }
 
     // time limit?
@@ -80,6 +82,8 @@ async function submitNewBet() {
         await docRef.set({
             title: title,
             options: optionArray,
+            optionswagerarray: optionsWagerArray,
+            pool: 0,
             groupID: currentGroup,
             family: betFamily,
             timelimit: timeLimit,
