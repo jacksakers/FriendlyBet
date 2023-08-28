@@ -153,7 +153,7 @@ async function wagerOnOption(betID, optionNum) {
   var newPool = (currentPool + wagerAmount);
   await betRef.set({pool: newPool},
     { merge: true });
-  
+  document.getElementById(betID+"-"+optionNum).value = "";
 }
 
 
