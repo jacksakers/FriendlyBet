@@ -14,8 +14,8 @@
   
   <body>
     <ul class="topnav">
-      <li class="credits">
-        100 c
+      <li class="credits" id="credits">
+        0 c
       </li>
       <li>
         <a href="./index.html">
@@ -54,12 +54,12 @@
     <br>
     <div class="row">
       <div class="column">
-        <div class="tab" id="selected-tab">
+        <div class="tab" id="selected-tab" onclick="goToNewBet()">
           New Bet
         </div>
       </div>
       <div class="column">
-        <div class="tab">
+        <div class="tab" id="created-bets" onclick="getCreatedBets()">
           Created Bets
         </div>
       </div>
@@ -83,27 +83,34 @@
               </div>
             </div>
           </div>
-        <div class="create-item">
-          <div id="new-bet-form" >
-            <input class="enter-title" placeholder="Enter Title"
-                id="title">
-            <div id="bet-options">
-                <input class="enter-bet-option" placeholder="Enter Bet Option 1"
-                id="bet-option1">
-                <br>
-                <input class="enter-bet-option" placeholder="Enter Bet Option 2"
-                    id="bet-option2">
+        <div id="bet-list">
+            <div class="create-item">
+                <div id="new-bet-form" >
+                  <input class="enter-title" placeholder="Enter Title"
+                      id="title">
+                  <label for="fam-select" class="time-limit-options">Category:</label>
+                  <select name="fam-select" id="fam-select">
+                    <option value="Sports">Sports</option>
+                    <option value="Misc">Misc</option>
+                  </select>
+                  <div id="bet-options">
+                      <input class="enter-bet-option" placeholder="Enter Bet Option 1"
+                      id="bet-option1">
+                      <br>
+                      <input class="enter-bet-option" placeholder="Enter Bet Option 2"
+                          id="bet-option2">
+                  </div>
+                  <br>
+                  <button onclick="addNewOption()">Add New Option</button>
+                  <br>
+                  <label for="time-limit" class="time-limit-options">Time Limit?</label>
+                  <input name="time-limit" id="time-limit" type="checkbox">
+                  <br>
+                  <input id="date" type="date"> <input id="time" type="time">
+                  <br>
+                  <input type="submit" value="Create Bet" id="create-bet-btn" onclick="submitNewBet();return false;">
+              </div>
             </div>
-            <br>
-            <button onclick="addNewOption()">Add New Option</button>
-            <br>
-            <label for="time-limit" class="time-limit-options">Time Limit?</label>
-            <input name="time-limit" id="time-limit" type="checkbox">
-            <br>
-            <input id="date" type="date"> <input id="time" type="time">
-            <br>
-            <input type="submit" value="Create Bet" id="create-bet-btn" onclick="submitNewBet();return false;">
-        </div>
         </div>
       </div>
       <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>

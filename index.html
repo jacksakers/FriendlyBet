@@ -14,8 +14,8 @@
   
   <body>
     <ul class="topnav">
-      <li class="credits">
-        100 c
+      <li class="credits" id="credits">
+        0 c
       </li>
       <li>
         <a class="active" href="#home">
@@ -54,12 +54,12 @@
     <br>
     <div class="row">
       <div class="column">
-        <div class="tab" id="selected-tab">
+        <div class="tab" id="selected-tab" onclick="goToSports()">
           Sports
         </div>
       </div>
       <div class="column">
-        <div class="tab">
+        <div class="tab" id="misc" onclick="goToMisc()">
           Miscellaneous
         </div>
       </div>

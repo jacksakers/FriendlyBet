@@ -2,20 +2,38 @@ const db = firebase.firestore();
 
 const betList = document.getElementById('bet-list');
 var currentUser = null;
+var currentFamily = "Sports";
+var credits = 0;
 
 //Handle Account Status
 firebase.auth().onAuthStateChanged(async (_user) => {
     if(_user) {
       currentUser = _user;
+      await getCredits();
       getGroups();
-      getGroupBets();
+      getGroupBets(currentFamily);
     } else {
       console.log("Not logged in");
     }
   });
   
 
-async function getGroupBets() {
+async function getCredits() {
+  var docRef = db.collection("users").doc(currentUser.uid);
+  await docRef.get().then((doc) => {
+    if (doc.exists) {
+        credits = doc.data().credits;
+    } else {
+        console.log("No such user document!");
+    }
+  }).catch((error) => {
+      console.log("Error getting document:", error);
+  });
+  document.getElementById("credits").innerHTML = credits + " c";
+  return credits;
+}
+
+async function getGroupBets(family) {
   var currentGroup = [];
   var docRef = db.collection("users").doc(currentUser.uid);
   await docRef.get().then((doc) => {
@@ -52,19 +70,24 @@ async function getGroupBets() {
           const data = doc.data();
           const timeLimit = data.timelimit;
           const betElement = document.createElement('div');
+          const betFamily = data.family;
+          if (betFamily != currentFamily) return;
           betElement.classList.add('item');
           const betOptions = data.options;
           var betOptionsDivs = ``;
+          var index = 1;
           betOptions.forEach((option) => {
               betOptionsDivs += `<div class="bet-option">
                   ${option} | 1.5
-                  <input class="enter-bet">
+                  <input class="enter-bet" id="${betID}-${index}">
                   c
-                  <button class="wager-button">
+                  <button class="wager-button" onclick="wagerOnOption('${betID}',${index})">
                   Wager
                   </button>
                   </div>`;
+              index++;
           });
+          
           if (timeLimit) {
 
             var q = new Date();
@@ -107,6 +130,31 @@ async function getGroupBets() {
     // });
 }
 
+async function wagerOnOption(betID, optionNum) {
+  var betRef = db.collection('bets').doc(betID);
+  var wagerAmount = parseInt(document.getElementById(betID+"-"+optionNum).value);
+  if (wagerAmount == 0) return false;
+  // credit check
+  var availableCredits = await getCredits();
+  if (wagerAmount > availableCredits) return false;
+  // update pool
+  var currentPool = 0;
+  await betRef.get().then((doc) => {
+    if (doc.exists) {
+        currentPool = doc.data().pool;
+    } else {
+        console.log("No such document!");
+    }
+  }).catch((error) => {
+      console.log("Error getting document:", error);
+  });
+  console.log(currentPool);
+  console.log(wagerAmount);
+  var newPool = (currentPool + wagerAmount);
+  await betRef.set({pool: newPool},
+    { merge: true });
+  
+}
 
 
 async function getGroups() {
@@ -153,4 +201,22 @@ async function setCurrentGroup(newGroup, groupID) {
     await docRef.set({currentgroup: newGroup, currentgroupID: groupID},
         { merge: true });
     await getGroupBets();
+}
+
+function goToMisc() {
+  if (currentFamily != "Misc") {
+    document.getElementById("selected-tab").id = "sports";
+    document.getElementById("misc").id = "selected-tab";
+    currentFamily = "Misc";
+  }
+  getGroupBets(currentFamily);
+}
+
+function goToSports() {
+  if (currentFamily != "Sports") {
+    document.getElementById("selected-tab").id = "misc";
+    document.getElementById("sports").id = "selected-tab";
+    currentFamily = "Sports";
+  }
+  getGroupBets(currentFamily);
 }

@@ -4,19 +4,33 @@ const db = firebase.firestore();
 
 var currentUser;
 const groups = document.getElementById("groups");
+var credits = 0;
 
 //Handle Account Status
 firebase.auth().onAuthStateChanged(user => {
   if(user) {
     currentUser = user;
-    // console.log(currentUser);
-    // window.location = './profile.html';
+    getCredits();
     userIsLoggedIn();
   } else {
     console.log("not signed in");
     window.location = "./login.html"
   }
 });
+
+async function getCredits() {
+  var docRef = db.collection("users").doc(currentUser.uid);
+  await docRef.get().then((doc) => {
+    if (doc.exists) {
+        credits = doc.data().credits;
+    } else {
+        console.log("No such user document!");
+    }
+  }).catch((error) => {
+      console.log("Error getting document:", error);
+  });
+  document.getElementById("credits").innerHTML = credits + " c";
+}
 
 async function userIsLoggedIn() {
   document.getElementById("selected-tab").innerHTML = "Hello, " + currentUser.email.split("@")[0];
@@ -49,26 +63,12 @@ async function createGroup() {
   document.getElementById("group-input").value = "";
 }
 
-// db.collection('groups').onSnapshot(snapshot => {
-//   groups.innerHTML = '';
-//   snapshot.forEach(doc => {
-//       const data = doc.data();
-//       const group = document.createElement('div');
-//       group.classList.add('group');
-//       group.innerHTML = `${data.groupname}`;
-//       groups.appendChild(group);
-//   });
-// });
-
-
 async function getGroups() {
   var groupArray = [];
   var docRef = db.collection("users").doc(currentUser.uid);
   await docRef.get().then((doc) => {
     if (doc.exists) {
-        // console.log("Document data:", doc.data());
         groupArray = doc.data().groups;
-        // document.getElementById("current-group").innerHTML = doc.data().currentgroup;
     } else {
         // doc.data() will be undefined in this case
         console.log("No such document!");
@@ -83,7 +83,6 @@ async function getGroups() {
     groups.innerHTML = '';
     await docRef.get().then((doc) => {
       if (doc.exists) {
-          // console.log("Document data:", doc.data());
           const data = doc.data();
           const groupElement = document.createElement('div');
           groupElement.classList.add("group");
