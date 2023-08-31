@@ -127,6 +127,113 @@ async function submitNewBet() {
     
 }
 
+async function deleteBet(betID) {
+    var betRef = db.collection("bets").doc(betID);
+    // delete bet
+    betRef.delete().then(() => {
+        // console.log("Document successfully deleted!");
+    }).catch((error) => {
+        console.error("Error removing document: ", error);
+    });
+    // delete bet from group
+    var groupRef = db.collection("groups").doc(currentGroup);
+    await groupRef.update({
+        bets: firebase.firestore.FieldValue.arrayRemove(betID)
+    });
+    // get all users in group
+    var usersArray;
+    await groupRef.get().then((doc) => {
+        if (doc.exists) {
+            usersArray = doc.data().users;
+        } else {
+            console.log("No such document!");
+        }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
+    // delete bet from users in group: wagered and bets
+    usersArray.forEach(async (userID) => {
+        var usersRef = db.collection("users").doc(userID);
+        await usersRef.update({
+            bets: firebase.firestore.FieldValue.arrayRemove(betID),
+            wagered: firebase.firestore.FieldValue.arrayRemove(betID)
+        });
+    })
+    document.getElementById(betID).remove();
+}
+
+async function payoutBet(betID, refund, optionNum) {
+    console.log("paying out bet "+ betID);
+    var docRef = db.collection('bets').doc(betID);
+    await docRef.get().then((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            const optionsWagerArray = data.optionswagerarray;
+            const betOptions = data.options;
+            var i = 0;
+            if (!refund) {
+                var optionsWASplit = optionsWagerArray[optionNum].split(" -:- ");
+                var amount = 0;
+                var uid;
+                optionsWASplit.forEach(async (pair) => {
+                    uid = pair.split(" | ")[0];
+                    amount = parseInt(pair.split(" | ")[1]);
+                    if (uid == "") return;
+                    console.log("paying user " + uid);
+                    var userRef = db.collection('users').doc(uid);
+                    var oldCredits = 0;
+                    await userRef.get().then((doc) => {
+                        oldCredits = doc.data().credits;
+                    }).catch((error) => {
+                        console.log("Error getting document:", error);
+                        return;
+                    });
+                    var newCredits = oldCredits + (amount * parseFloat(betOptions[optionNum].split(" | ")[1]));
+                    console.log("new credits: " + newCredits);
+                    await userRef.set({credits: newCredits.toFixed(2)}, {merge: true});
+                    if (uid == currentUser.uid) document.getElementById("credits").innerHTML = newCredits + " c";
+                })
+            } else {
+                betOptions.forEach((option) => {
+                    var optionsWASplit = optionsWagerArray[i].split(" -:- ");
+                    var amount = 0;
+                    var uid;
+                    optionsWASplit.forEach(async (pair) => {
+                        uid = pair.split(" | ")[0];
+                        amount = parseInt(pair.split(" | ")[1]);
+                        if (uid == "") return;
+                        console.log("paying user " + uid);
+                        var userRef = db.collection('users').doc(uid);
+                        var oldCredits = 0;
+                        await userRef.get().then((doc) => {
+                            oldCredits = doc.data().credits;
+                        }).catch((error) => {
+                            console.log("Error getting document:", error);
+                            return;
+                        });
+                        var newCredits = 0;
+                        if (refund) {
+                            newCredits = oldCredits + amount;
+                        } else {
+                            newCredits = oldCredits + (amount * parseFloat(option.split(" | ")[1]));
+                        }
+                        console.log("new credits: " + newCredits);
+                        await userRef.set({credits: newCredits.toFixed(2)}, {merge: true});
+                        if (uid == currentUser.uid) document.getElementById("credits").innerHTML = newCredits + " c";
+                    })
+                    i++;
+                });
+            }
+        } else {
+            console.log("No such bet document!");
+        }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
+
+    deleteBet(betID);
+}
+
 
 async function getGroups() {
   var groupArray = [];
@@ -202,15 +309,18 @@ async function getCreatedBets() {
             const timeLimit = data.timelimit;
             const betElement = document.createElement('div');
             betElement.classList.add('item');
+            betElement.id = betID;
             const betOptions = data.options;
             var betOptionsDivs = ``;
+            var i = 0;
             betOptions.forEach((option) => {
                 betOptionsDivs += `<div class="bet-option">
                     ${option}
-                    <button class="wager-button">
+                    <button class="wager-button" onclick="payoutBet('${betID}', false, ${i})">
                     Winner
                     </button>
                     </div>`;
+                ++i;
             });
             if (timeLimit) {
 
@@ -231,13 +341,23 @@ async function getCreatedBets() {
 
                 var hour = timeSplit[0];
                 var time = data.time;
-                if (hour > 12) time = (hour - 12) + ":" + timeSplit[1];
+                if (hour > 12) {
+                    time = (hour - 12) + ":" + timeSplit[1] + " PM";
+                } else {
+                    time += " AM";
+                }
 
                 betElement.innerHTML = `<div class="bet-name">
-                ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
+                    ${data.title} | Ends on ${data.date} at ${time} 
+                    <button class="delete-button" onclick="payoutBet('${betID}', true)">
+                    Delete
+                    </button></div>` + betOptionsDivs;
             } else {
                 betElement.innerHTML = `<div class="bet-name">
-                ${data.title}</div>` + betOptionsDivs;
+                ${data.title}
+                <button class="delete-button" onclick="payoutBet('${betID}', true)">
+                Delete
+                </button></div>` + betOptionsDivs;
             }
             betList.appendChild(betElement);
         } else {

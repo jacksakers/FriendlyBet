@@ -108,7 +108,11 @@ async function getGroupBets(family) {
 
             var hour = timeSplit[0];
             var time = data.time;
-            if (hour > 12) time = (hour - 12) + ":" + timeSplit[1];
+            if (hour > 12) {
+              time = (hour - 12) + ":" + timeSplit[1] + " PM";
+            } else {
+              time += " AM";
+            }
 
             betElement.innerHTML = `<div class="bet-name">
               ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
@@ -136,7 +140,8 @@ async function getGroupBets(family) {
 async function wagerOnOption(betID, optionNum) {
   var betRef = db.collection('bets').doc(betID);
   var wagerAmount = parseInt(document.getElementById(betID+"-"+optionNum).value);
-  if (wagerAmount == 0) return false;
+  console.log(wagerAmount);
+  if (wagerAmount < 1 || !wagerAmount) return false;
   // credit check
   var availableCredits = await getCredits();
   if (wagerAmount > availableCredits) return false;
@@ -191,7 +196,8 @@ async function wagerOnOption(betID, optionNum) {
         i++;
       });
     }
-    var newOdds = (newPool / optionAmount).toFixed(2);
+    var newOdds = 0;
+    if (newPool > 0 && optionAmount > 0) newOdds = (newPool / optionAmount).toFixed(2);
     currentOptions[index] = optionTitle + " | " + newOdds + " | " + optionAmount;
     document.getElementById(`option-${betID}-${index + 1}`).innerHTML = currentOptions[index];
     index++;
@@ -222,7 +228,7 @@ async function getGroups() {
         document.getElementById("current-group").innerHTML = doc.data().currentgroup;
     } else {
         // doc.data() will be undefined in this case
-        console.log("No such document!");
+        console.log("No such user document!");
     }
   }).catch((error) => {
       console.log("Error getting document:", error);
@@ -234,15 +240,13 @@ async function getGroups() {
     groupDropdown.innerHTML = '';
     await docRef.get().then((doc) => {
       if (doc.exists) {
-          // console.log("Document data:", doc.data());
           const data = doc.data();
           const groupDDElement = document.createElement('a');
           groupDDElement.setAttribute('onclick', `setCurrentGroup("${data.groupname}", "${groupID}")`);
           groupDDElement.innerHTML = `${data.groupname}`;
           groupDropdown.appendChild(groupDDElement);
       } else {
-          // doc.data() will be undefined in this case
-          console.log("No such document!");
+          console.log("No such group document!");
       }
     }).catch((error) => {
         console.log("Error getting document:", error);

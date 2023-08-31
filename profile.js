@@ -51,16 +51,55 @@ function signOut() {
 
 async function createGroup() {
   var groupName = document.getElementById("group-input").value;
+  if (groupName == "") return;
   const docRef = db.collection("groups").doc();
   const docId = docRef.id;
+  const usersArray = [currentUser.uid];
   await docRef.set({
-    groupname: groupName
+    groupname: groupName,
+    users: usersArray,
+    joinID: guidGenerator(),
+    bets: []
   });
   var usersRef = db.collection("users").doc(currentUser.uid);
   await usersRef.update({
       groups: firebase.firestore.FieldValue.arrayUnion(docId)
   });
   document.getElementById("group-input").value = "";
+  await getGroups();
+}
+
+async function joinGroup() {
+  var joinID = document.getElementById("join-group-input").value;
+  if (joinID == "") return;
+  const groupRef = db.collection("groups").where("joinID", "==", joinID);
+  var groupID;
+  await groupRef.get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      groupID = doc.id;
+    });
+    if (groupID == undefined) alert("Group does not exist");
+  }).catch((error) => {
+      console.log("Error getting document:", error);
+  });
+  if (groupID == undefined) return;
+  var newGroupRef = db.collection("groups").doc(groupID);
+  await newGroupRef.update({
+    users: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+  });
+  var usersRef = db.collection("users").doc(currentUser.uid);
+  await usersRef.update({
+      groups: firebase.firestore.FieldValue.arrayUnion(groupID)
+  });
+  document.getElementById("join-group-input").value = "";
+  await getGroups();
+}
+
+function guidGenerator() {
+  var S4 = function() {
+     return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+  };
+  return (S4());
 }
 
 async function getGroups() {
@@ -86,7 +125,7 @@ async function getGroups() {
           const data = doc.data();
           const groupElement = document.createElement('div');
           groupElement.classList.add("group");
-          groupElement.innerHTML = `${data.groupname}`;
+          groupElement.innerHTML = `${data.groupname} | ID: ${data.joinID}`;
           groups.appendChild(groupElement);
       } else {
           // doc.data() will be undefined in this case
