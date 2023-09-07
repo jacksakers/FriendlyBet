@@ -14,6 +14,7 @@ firebase.auth().onAuthStateChanged(async (_user) => {
       getGroupBets(currentFamily);
     } else {
       console.log("Not logged in");
+      window.location = "./login.html";
     }
   });
   
@@ -29,7 +30,7 @@ async function getCredits() {
   }).catch((error) => {
       console.log("Error getting document:", error);
   });
-  document.getElementById("credits").innerHTML = credits + " c";
+  document.getElementById("credits").innerHTML = credits.toFixed(2) + " c";
   return credits;
 }
 
@@ -63,7 +64,7 @@ async function getGroupBets(family) {
   var betList = document.getElementById("bet-list");
   betList.innerHTML = '';
   var betElementsArray = [];
-  await betsArray.forEach(async (betID) => {
+  betsArray.forEach(async (betID) => {
     var docRef = db.collection('bets').doc(betID);
     await docRef.onSnapshot((doc) => {
       if (doc.exists) {
@@ -78,8 +79,12 @@ async function getGroupBets(family) {
           var betOptionsDivs = ``;
           var index = 1;
           betOptions.forEach((option) => {
+              var optionArray = option.split(" | ");
+              var optionTitle = optionArray[0];
+              var optionOdds = optionArray[1];
+              var optionPool = optionArray[2];
               betOptionsDivs += `<div class="bet-option">
-                  <span id="option-${betID}-${index}"> ${option} </span>
+                  <span id="option-${betID}-${index}"> ${optionTitle} | ${optionOdds}</span>
                   <input class="enter-bet" id="${betID}-${index}">
                   c
                   <button class="wager-button" onclick="wagerOnOption('${betID}',${index})">
@@ -98,14 +103,6 @@ async function getGroupBets(family) {
             var limit=new Date(dateSplit[0],dateSplit[1]-1,dateSplit[2],
                                 timeSplit[0], timeSplit[1]);
 
-            if (q>limit) {
-                console.log("expired");
-            } else {
-              if (q.getTime() < limit.getTime()) {
-                console.log("not expired")
-              }
-            }
-
             var hour = timeSplit[0];
             var time = data.time;
             if (hour > 12) {
@@ -114,8 +111,20 @@ async function getGroupBets(family) {
               time += " AM";
             }
 
-            betElement.innerHTML = `<div class="bet-name">
-              ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
+            if (q>limit) {
+              // console.log("expired");
+              // betElement.innerHTML = `<div class="bet-name">
+              //   ${data.title} | Expired! </div>` + betOptionsDivs;
+            } else {
+              if (q.getTime() < limit.getTime()) {
+                // console.log("not expired");
+                betElement.innerHTML = `<div class="bet-name">
+                  ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
+              }
+            }
+
+            // betElement.innerHTML = `<div class="bet-name">
+            //   ${data.title} | Ends on ${data.date} at ${time}</div>` + betOptionsDivs;
           } else {
             betElement.innerHTML = `<div class="bet-name">
               ${data.title}</div>` + betOptionsDivs;
@@ -123,7 +132,7 @@ async function getGroupBets(family) {
           try {
             document.getElementById(doc.id).innerHTML = betElement.innerHTML;
           } catch(err) {
-            betList.appendChild(betElement);
+            if (betElement.innerHTML != "") betList.appendChild(betElement);
           }
       } else {
           // doc.data() will be undefined in this case
@@ -197,7 +206,7 @@ async function wagerOnOption(betID, optionNum) {
       });
     }
     var newOdds = 0;
-    if (newPool > 0 && optionAmount > 0) newOdds = (newPool / optionAmount).toFixed(2);
+    if (newPool > 0 && optionAmount > 0) newOdds = parseFloat((newPool / optionAmount).toFixed(2));
     currentOptions[index] = optionTitle + " | " + newOdds + " | " + optionAmount;
     document.getElementById(`option-${betID}-${index + 1}`).innerHTML = currentOptions[index];
     index++;
@@ -209,6 +218,7 @@ async function wagerOnOption(betID, optionNum) {
                     optionswagerarray: optionsWagerArray},
     { merge: true });
   var userRef = db.collection("users").doc(currentUser.uid);
+  availableCredits = parseFloat(availableCredits);
   await userRef.set({wagered: firebase.firestore.FieldValue.arrayUnion(betID),
                     credits: availableCredits},
     { merge: true });

@@ -1,1 +1,0 @@
-# Friendly Bet.Net

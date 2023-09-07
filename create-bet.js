@@ -13,6 +13,7 @@ firebase.auth().onAuthStateChanged(async (_user) => {
       await userIsLoggedIn();
     } else {
       console.log("Not logged in");
+      window.location = "./login.html";
     }
   });
 
@@ -28,7 +29,7 @@ async function getCredits() {
     }).catch((error) => {
         console.log("Error getting document:", error);
     });
-    document.getElementById("credits").innerHTML = credits + " c";
+    document.getElementById("credits").innerHTML = credits.toFixed(2) + " c";
   }
 
   
@@ -61,8 +62,11 @@ async function submitNewBet() {
     var optionArray = [];
     var optionsWagerArray = [];
     for (var i = 1; i < numOfOptions+1; ++i) {
-        optionArray.push(document.getElementById(`bet-option${i}`).value + " | 0 | 0");
-        optionsWagerArray.push(" -:- ");
+        var optionValue = document.getElementById(`bet-option${i}`).value;
+        if (optionValue != "") {
+            optionArray.push(optionValue + " | 0 | 0");
+            optionsWagerArray.push(" -:- ");
+        }
     }
 
     // time limit?
@@ -165,12 +169,18 @@ async function deleteBet(betID) {
 async function payoutBet(betID, refund, optionNum) {
     console.log("paying out bet "+ betID);
     var docRef = db.collection('bets').doc(betID);
-    await docRef.get().then((doc) => {
+    await docRef.get().then(async (doc) => {
         if (doc.exists) {
             const data = doc.data();
             const optionsWagerArray = data.optionswagerarray;
             const betOptions = data.options;
             var i = 0;
+            if (optionNum != undefined) {
+                var odds = parseFloat(betOptions[optionNum].split(" | ")[1]);
+                if (odds == 0) {
+                    refund = true;
+                }
+            }
             if (!refund) {
                 var optionsWASplit = optionsWagerArray[optionNum].split(" -:- ");
                 var amount = 0;
@@ -188,9 +198,9 @@ async function payoutBet(betID, refund, optionNum) {
                         console.log("Error getting document:", error);
                         return;
                     });
-                    var newCredits = oldCredits + (amount * parseFloat(betOptions[optionNum].split(" | ")[1]));
+                    var newCredits = (parseFloat(oldCredits) + (parseFloat(amount) * parseFloat(odds)));
                     console.log("new credits: " + newCredits);
-                    await userRef.set({credits: newCredits.toFixed(2)}, {merge: true});
+                    await userRef.set({credits: newCredits}, {merge: true});
                     if (uid == currentUser.uid) document.getElementById("credits").innerHTML = newCredits + " c";
                 })
             } else {
@@ -200,7 +210,7 @@ async function payoutBet(betID, refund, optionNum) {
                     var uid;
                     optionsWASplit.forEach(async (pair) => {
                         uid = pair.split(" | ")[0];
-                        amount = parseInt(pair.split(" | ")[1]);
+                        amount = parseFloat(pair.split(" | ")[1]);
                         if (uid == "") return;
                         console.log("paying user " + uid);
                         var userRef = db.collection('users').doc(uid);
@@ -213,12 +223,12 @@ async function payoutBet(betID, refund, optionNum) {
                         });
                         var newCredits = 0;
                         if (refund) {
-                            newCredits = oldCredits + amount;
+                            newCredits = parseFloat(oldCredits) + parseFloat(amount);
                         } else {
-                            newCredits = oldCredits + (amount * parseFloat(option.split(" | ")[1]));
+                            newCredits = parseFloat(oldCredits) + (parseFloat(amount) * parseFloat(option.split(" | ")[1]));
                         }
                         console.log("new credits: " + newCredits);
-                        await userRef.set({credits: newCredits.toFixed(2)}, {merge: true});
+                        await userRef.set({credits: newCredits}, {merge: true});
                         if (uid == currentUser.uid) document.getElementById("credits").innerHTML = newCredits + " c";
                     })
                     i++;
@@ -231,7 +241,7 @@ async function payoutBet(betID, refund, optionNum) {
         console.log("Error getting document:", error);
     });
 
-    deleteBet(betID);
+    await deleteBet(betID);
 }
 
 
@@ -331,14 +341,6 @@ async function getCreatedBets() {
                 var limit=new Date(dateSplit[0],dateSplit[1]-1,dateSplit[2],
                                     timeSplit[0], timeSplit[1]);
 
-                if (q>limit) {
-                    console.log("expired");
-                } else {
-                if (q.getTime() < limit.getTime()) {
-                    console.log("not expired")
-                }
-                }
-
                 var hour = timeSplit[0];
                 var time = data.time;
                 if (hour > 12) {
@@ -347,16 +349,34 @@ async function getCreatedBets() {
                     time += " AM";
                 }
 
-                betElement.innerHTML = `<div class="bet-name">
-                    ${data.title} | Ends on ${data.date} at ${time} 
-                    <button class="delete-button" onclick="payoutBet('${betID}', true)">
-                    Delete
-                    </button></div>` + betOptionsDivs;
+                if (q>limit) {
+                    // console.log("expired");
+                    betElement.innerHTML = `<div class="bet-name">
+                        ${data.title} | Expired! 
+                        <button class="delete-button" onclick="payoutBet('${betID}', true)">
+                        Refund
+                        </button></div>` + betOptionsDivs;
+                  } else {
+                    if (q.getTime() < limit.getTime()) {
+                      // console.log("not expired");
+                      betElement.innerHTML = `<div class="bet-name">
+                        ${data.title} | Ends on ${data.date} at ${time} 
+                        <button class="delete-button" onclick="payoutBet('${betID}', true)">
+                        Refund
+                        </button></div>` + betOptionsDivs;
+                    }
+                  }
+
+                // betElement.innerHTML = `<div class="bet-name">
+                //     ${data.title} | Ends on ${data.date} at ${time} 
+                //     <button class="delete-button" onclick="payoutBet('${betID}', true)">
+                //     Delete
+                //     </button></div>` + betOptionsDivs;
             } else {
                 betElement.innerHTML = `<div class="bet-name">
                 ${data.title}
                 <button class="delete-button" onclick="payoutBet('${betID}', true)">
-                Delete
+                Refund
                 </button></div>` + betOptionsDivs;
             }
             betList.appendChild(betElement);
@@ -377,6 +397,11 @@ function goToNewBet() {
         <div id="new-bet-form" >
         <input class="enter-title" placeholder="Enter Title"
             id="title">
+        <label for="fam-select" class="time-limit-options">Category:</label>
+        <select name="fam-select" id="fam-select">
+            <option value="Sports">Sports</option>
+            <option value="Misc">Misc</option>
+        </select>
         <div id="bet-options">
             <input class="enter-bet-option" placeholder="Enter Bet Option 1"
             id="bet-option1">
